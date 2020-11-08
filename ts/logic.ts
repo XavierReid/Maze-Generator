@@ -10,28 +10,33 @@ type Neighbor = {
     direction: number;
 };
 
+type Route = {
+    cell: Cell,
+    pathTo: Cell[];
+};
+
 enum Directions {
     Up = 1,
     Down,
     Left,
     Right
 }
-
 class Cell {
     visited: boolean;
     walls: Walls;
     xAxis: number;
     yAxis: number;
-    constructor(x: number, y: number) {
-        this.visited = true;
+
+    constructor(row: number, col: number) {
+        this.visited = false;
         this.walls = {
             top: true,
             bottom: true,
             left: true,
             right: true
         };
-        this.xAxis = x;
-        this.yAxis = y;
+        this.xAxis = row;
+        this.yAxis = col;
     }
 }
 
@@ -44,6 +49,7 @@ class Board {
     isSolved: boolean;
     isRunning: boolean;
     isInitialized: boolean;
+    isCompleted: boolean;
     time: number;
 
     constructor(size: number) {
@@ -52,6 +58,7 @@ class Board {
         this.isSolved = false;
         this.isRunning = true;
         this.isInitialized = false;
+        this.isCompleted = false;
         this.solution = [];
         this.initStack = [];
         this.grid = [];
@@ -68,18 +75,20 @@ class Board {
         }
     }
 
-    buildMaze(row: number, col: number) {
+    async buildMaze(row: number, col: number) {
         const start = this.grid[row][col];
         const scale = canvas.width / this.size;
         this.initStack.push(start);
         while (this.initStack.length > 0 && this.isRunning) {
             const current = this.initStack[this.initStack.length - 1];
+            console.log({ current });
             this.previousCell = current;
             current.visited = true;
             const neighbor = this.chooseNeighbor(current);
+            console.log({ neighbor });
             const tile = { cell: current, scale };
             carve(tile, 'blue', 'teal');
-            //add sleep later
+            await sleep(100);
             if (neighbor) {
                 this.removeWalls(neighbor, tile);
             }
@@ -87,16 +96,58 @@ class Board {
                 this.initStack.pop();
                 carve(tile, 'blue', 'black');
             }
-            if (this.isRunning) {
-                //TODO
-            }
+        }
+        if (this.isRunning) {
+            this.isInitialized = true;
+        }
+    }
 
+    solve(start: Cell, end: Cell) {
+        this.previousCell = start;
+        const queue: Route[] = [{ cell: start, pathTo: [start] }];
+        const visited: Set<Cell> = new Set<Cell>();
+        while (queue.length > 0 && this.isRunning) {
+            const { cell, pathTo } = queue.shift()!;
+            if (!visited.has(cell)) {
+                visited.add(cell);
+                if (cell === end) {
+                    this.solution = pathTo;
+                    return;
+                }
+                const neighbors = this.getNeighbors(cell);
+                neighbors.forEach(neighbor => {
+                    let isValid = false;
+                    switch (neighbor.direction) {
+                        case Directions.Up:
+                            isValid = !cell.walls.top && !neighbor.cell.walls.bottom;
+                            break;
+                        case Directions.Down:
+                            isValid = !cell.walls.bottom && !neighbor.cell.walls.top;
+                            break;
+                        case Directions.Left:
+                            isValid = !cell.walls.left && !neighbor.cell.walls.right;
+                            break;
+                        case Directions.Right:
+                            isValid = !cell.walls.right && !neighbor.cell.walls.left;
+                            break;
+                        default:
+                            break;
+                    }
+                    if (isValid) {
+                        queue.push({ cell: neighbor.cell, pathTo: pathTo.concat([neighbor.cell]) });
+                    }
+                });
+
+            }
+        }
+        if (this.isRunning) {
+            this.isSolved = true;
         }
     }
 
     private removeWalls(neighbor: Neighbor, tile: Tile) {
-        const currentCell = tile.cell;
         const neighborCell = neighbor.cell;
+        const currentCell = tile.cell;
         switch (neighbor.direction) {
             case Directions.Up:
                 currentCell.walls.top = false;
@@ -121,18 +172,24 @@ class Board {
         carve(tile, 'blue', 'purple');
     }
 
-    private chooseNeighbor(cell: Cell): Neighbor | null {
+    private getNeighbors(cell: Cell): Neighbor[] {
         const directions = [[-1, 0, 1], [1, 0, 2], [0, -1, 3], [0, 1, 4]];
-
-        const unvisited: Neighbor[] = directions.filter(direction => {
+        const neighbors = directions.filter(direction => {
             const dirX = cell.xAxis + direction[0];
             const dirY = cell.yAxis + direction[1];
-            return this.checkBounds(dirX, dirY) && !this.grid[dirX][dirY].visited;
+            return this.checkBounds(dirX, dirY);
         }).map(coords => ({
-            cell: this.grid[coords[0]][coords[1]],
+            cell: this.grid[coords[0] + cell.xAxis][coords[1] + cell.yAxis],
             direction: coords[2]
         }));
+        console.log({ neighbors });
+        return neighbors;
 
+
+    }
+
+    private chooseNeighbor(cell: Cell): Neighbor | null {
+        const unvisited = this.getNeighbors(cell).filter(neighbor => !neighbor.cell.visited);
         const shuffled = this.shuffle(unvisited);
         return shuffled.length > 0 ? shuffled[0] : null;
 
@@ -157,3 +214,6 @@ class Board {
     }
 
 }
+
+const board = new Board(25);
+start(board);
