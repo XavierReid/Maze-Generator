@@ -21,8 +21,12 @@ export default function App() {
           phase={maze.phase}
           size={maze.size}
           speed={maze.speed}
+          generatorId={maze.generatorId}
+          solverId={maze.solverId}
           setSize={maze.setSize}
           setSpeed={maze.setSpeed}
+          setGeneratorId={maze.setGeneratorId}
+          setSolverId={maze.setSolverId}
           generate={maze.generate}
           solve={maze.solve}
         />

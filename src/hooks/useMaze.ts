@@ -3,6 +3,7 @@ import { createGrid } from '../engine/grid';
 import { recursiveBacktracking } from '../engine/generators/recursiveBacktracking';
 import { bfs } from '../engine/solvers/bfs';
 import type { Grid, AppPhase } from '../engine/types';
+import type { GeneratorId, SolverId } from '../engine/algorithms';
 import { renderMaze } from '../renderer/draw';
 
 const speedToDelay = (speed: number) => Math.round(205 - speed * 20); // 1→185ms  10→5ms
@@ -11,14 +12,23 @@ export type MazeControls = {
   phase: AppPhase;
   size: number;
   speed: number;
+  generatorId: GeneratorId;
+  solverId: SolverId;
   setSize: (n: number) => void;
   setSpeed: (n: number) => void;
+  setGeneratorId: (id: GeneratorId) => void;
+  setSolverId: (id: SolverId) => void;
   generate: () => void;
   solve: () => void;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
 };
 
-export function useMaze(initialSize = 15, initialSpeed = 5): MazeControls {
+export function useMaze(
+  initialSize = 15,
+  initialSpeed = 5,
+  initialGeneratorId: GeneratorId = 'recursive-backtracking',
+  initialSolverId: SolverId = 'bfs',
+): MazeControls {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Grid lives in a ref — we never need React to re-render based on it
@@ -27,6 +37,8 @@ export function useMaze(initialSize = 15, initialSpeed = 5): MazeControls {
   const [phase, setPhase] = useState<AppPhase>('idle');
   const [size, setSize] = useState(initialSize);
   const [speed, setSpeed] = useState(initialSpeed);
+  const [generatorId, setGeneratorId] = useState<GeneratorId>(initialGeneratorId);
+  const [solverId, setSolverId] = useState<SolverId>(initialSolverId);
 
   // Mutable render state refs (updated every tick, no re-render needed)
   const currentCellRef = useRef<[number, number] | null>(null);
@@ -36,15 +48,13 @@ export function useMaze(initialSize = 15, initialSpeed = 5): MazeControls {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const speedRef = useRef(speed);
+  const generatorIdRef = useRef(generatorId);
+  const solverIdRef = useRef(solverId);
 
-  useEffect(() => {
-    speedRef.current = speed;
-  }, [speed]);
-
-  // Keep phaseRef in sync for use inside interval callbacks
-  useEffect(() => {
-    phaseRef.current = phase;
-  }, [phase]);
+  useEffect(() => { speedRef.current = speed; }, [speed]);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  useEffect(() => { generatorIdRef.current = generatorId; }, [generatorId]);
+  useEffect(() => { solverIdRef.current = solverId; }, [solverId]);
 
   const stopLoop = useCallback(() => {
     if (intervalRef.current != null) {
@@ -78,12 +88,17 @@ export function useMaze(initialSize = 15, initialSpeed = 5): MazeControls {
     setPhase('generating');
     phaseRef.current = 'generating';
 
-    const gen = recursiveBacktracking(newGrid);
+    // Switch on generatorId — new algorithms plug in here in Phase 2d+
+    const gen = (() => {
+      switch (generatorIdRef.current) {
+        case 'recursive-backtracking':
+        default:
+          return recursiveBacktracking(newGrid);
+      }
+    })();
 
     intervalRef.current = setInterval(() => {
       const delay = speedToDelay(speedRef.current);
-
-      // Advance multiple steps per tick when speed is high
       const stepsPerTick = delay < 20 ? 5 : 1;
 
       for (let i = 0; i < stepsPerTick; i++) {
@@ -120,7 +135,15 @@ export function useMaze(initialSize = 15, initialSpeed = 5): MazeControls {
 
     const grid = gridRef.current;
     const end: [number, number] = [grid.length - 1, grid.length - 1];
-    const gen = bfs(grid, [0, 0], end);
+
+    // Switch on solverId — new algorithms plug in here in Phase 2b+
+    const gen = (() => {
+      switch (solverIdRef.current) {
+        case 'bfs':
+        default:
+          return bfs(grid, [0, 0], end);
+      }
+    })();
 
     intervalRef.current = setInterval(() => {
       const delay = speedToDelay(speedRef.current);
@@ -160,8 +183,12 @@ export function useMaze(initialSize = 15, initialSpeed = 5): MazeControls {
     phase,
     size,
     speed,
+    generatorId,
+    solverId,
     setSize,
     setSpeed,
+    setGeneratorId,
+    setSolverId,
     generate,
     solve,
     canvasRef,

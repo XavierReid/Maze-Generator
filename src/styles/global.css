@@ -38,17 +38,19 @@ html, body {
 .app {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  padding: 2rem 1.5rem;
-  gap: 2rem;
+  height: 100vh;
+  padding: 1rem 1.5rem;
+  gap: 1rem;
+  overflow: hidden;
 }
 
 .header {
   text-align: center;
+  flex-shrink: 0;
 }
 
 .title {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-size: clamp(1.4rem, 3vw, 2rem);
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--text);
@@ -59,26 +61,21 @@ html, body {
 }
 
 .subtitle {
-  margin-top: 0.4rem;
+  margin-top: 0.2rem;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .main {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-
-@media (min-width: 900px) {
-  .main {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: center;
-  }
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── Canvas ───────────────────────────────────────────────────────────────── */
@@ -88,24 +85,28 @@ html, body {
   border: 1px solid var(--border);
   box-shadow: 0 0 40px rgba(124, 58, 237, 0.12);
   flex-shrink: 0;
+  align-self: flex-start;
 }
 
 .maze-canvas {
   display: block;
-  width: min(560px, 90vw);
-  height: min(560px, 90vw);
+  width: min(calc(100vh - 140px), 680px);
+  height: min(calc(100vh - 140px), 680px);
 }
 
 /* ── Controls ─────────────────────────────────────────────────────────────── */
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  width: 260px;
-  padding: 1.5rem;
+  gap: 1rem;
+  width: 300px;
+  flex-shrink: 0;
+  padding: 1.25rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
 }
 
 /* Status badge */
@@ -256,4 +257,101 @@ html, body {
 .btn-secondary:not(:disabled):hover {
   background: rgba(16, 185, 129, 0.1);
   border-color: var(--green);
+}
+
+/* ── Radio groups ─────────────────────────────────────────────────────────── */
+
+/* Wrapper that puts Generation and Solving columns side by side */
+.algo-selectors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.algo-selectors .control-group {
+  min-width: 0;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+}
+
+.radio-option input[type='radio'] {
+  accent-color: var(--accent-light);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.radio-option:not(.disabled):hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.radio-option.selected {
+  color: var(--accent-light);
+  border-color: rgba(124, 58, 237, 0.3);
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.radio-option.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.radio-option.disabled input {
+  cursor: not-allowed;
+}
+
+.coming-soon {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* ── Algorithm description card ──────────────────────────────────────────── */
+.algo-description {
+  padding: 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-height: 80px;
+  transition: border-color 0.2s;
+}
+
+.algo-description-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-light);
+  letter-spacing: 0.03em;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+}
+
+.algo-description-text {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.55;
 }
