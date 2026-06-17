@@ -64,6 +64,6 @@ export const SOLVERS: AlgorithmMeta[] = [
     name: 'A*',
     description:
       'Uses a heuristic to bias search toward the goal. Finds the shortest path while visiting far fewer cells than BFS.',
-    available: false,
+    available: true,
   },
 ];

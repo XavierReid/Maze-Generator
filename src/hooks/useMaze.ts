@@ -3,6 +3,7 @@ import { createGrid } from '../engine/grid';
 import { recursiveBacktracking } from '../engine/generators/recursiveBacktracking';
 import { bfs } from '../engine/solvers/bfs';
 import { dfs } from '../engine/solvers/dfs';
+import { astar } from '../engine/solvers/astar';
 import type { Grid, AppPhase } from '../engine/types';
 import type { GeneratorId, SolverId } from '../engine/algorithms';
 import { renderMaze } from '../renderer/draw';
@@ -142,6 +143,8 @@ export function useMaze(
       switch (solverIdRef.current) {
         case 'dfs':
           return dfs(grid, [0, 0], end);
+        case 'astar':
+          return astar(grid, [0, 0], end);
         case 'bfs':
         default:
           return bfs(grid, [0, 0], end);
