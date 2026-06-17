@@ -33,7 +33,7 @@ export const GENERATORS: AlgorithmMeta[] = [
     name: "Kruskal's",
     description:
       'Randomly merges disconnected regions using a union-find structure. Produces a highly uniform maze with many short dead ends.',
-    available: false,
+    available: true,
   },
   {
     id: 'wilsons',

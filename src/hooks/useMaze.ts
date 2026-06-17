@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { createGrid } from '../engine/grid';
 import { recursiveBacktracking } from '../engine/generators/recursiveBacktracking';
 import { prims } from '../engine/generators/prims';
+import { kruskals } from '../engine/generators/kruskals';
 import { bfs } from '../engine/solvers/bfs';
 import { dfs } from '../engine/solvers/dfs';
 import { astar } from '../engine/solvers/astar';
@@ -99,6 +100,8 @@ export function useMaze(
       switch (generatorIdRef.current) {
         case 'prims':
           return prims(newGrid);
+        case 'kruskals':
+          return kruskals(newGrid);
         case 'recursive-backtracking':
         default:
           return recursiveBacktracking(newGrid);
