@@ -57,7 +57,7 @@ export const SOLVERS: AlgorithmMeta[] = [
     name: 'DFS',
     description:
       'Depth-first search dives deep before backtracking. Fast but does not guarantee the shortest path.',
-    available: false,
+    available: true,
   },
   {
     id: 'astar',

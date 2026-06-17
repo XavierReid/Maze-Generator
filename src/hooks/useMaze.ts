@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { createGrid } from '../engine/grid';
 import { recursiveBacktracking } from '../engine/generators/recursiveBacktracking';
 import { bfs } from '../engine/solvers/bfs';
+import { dfs } from '../engine/solvers/dfs';
 import type { Grid, AppPhase } from '../engine/types';
 import type { GeneratorId, SolverId } from '../engine/algorithms';
 import { renderMaze } from '../renderer/draw';
@@ -124,7 +125,7 @@ export function useMaze(
 
   // ── Solve ──────────────────────────────────────────────────────────────────
   const solve = useCallback(() => {
-    if (phase !== 'generated') return;
+    if (phase !== 'generated' && phase !== 'solved') return;
     stopLoop();
 
     solvePathRef.current = [];
@@ -139,6 +140,8 @@ export function useMaze(
     // Switch on solverId — new algorithms plug in here in Phase 2b+
     const gen = (() => {
       switch (solverIdRef.current) {
+        case 'dfs':
+          return dfs(grid, [0, 0], end);
         case 'bfs':
         default:
           return bfs(grid, [0, 0], end);

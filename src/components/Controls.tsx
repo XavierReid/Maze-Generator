@@ -29,7 +29,7 @@ export function Controls({
   const [hoveredAlgo, setHoveredAlgo] = useState<AlgorithmMeta | null>(null);
 
   const isBusy = phase === 'generating' || phase === 'solving';
-  const canSolve = phase === 'generated';
+  const canSolve = phase === 'generated' || phase === 'solved';
 
   const activeGenerator = GENERATORS.find((g) => g.id === generatorId)!;
   const activeSolver = SOLVERS.find((s) => s.id === solverId)!;
