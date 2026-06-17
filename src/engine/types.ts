@@ -19,8 +19,10 @@ export type Grid = Cell[][];
 // ── Generator step types ─────────────────────────────────────────────────────
 
 export type GenerateStep =
-  | { phase: 'visiting'; row: number; col: number }
-  | { phase: 'backtracking'; row: number; col: number }
+  | { phase: 'visiting'; row: number; col: number }      // recursive backtracking
+  | { phase: 'backtracking'; row: number; col: number }  // recursive backtracking
+  | { phase: 'carving'; row: number; col: number }       // Prim's: cell being added to maze
+  | { phase: 'frontier'; cells: [number, number][] }     // Prim's: updated frontier snapshot
   | { phase: 'done' };
 
 export type SolveStep =

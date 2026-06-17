@@ -26,7 +26,7 @@ export const GENERATORS: AlgorithmMeta[] = [
     name: "Prim's",
     description:
       'Grows the maze from a single cell by repeatedly adding the cheapest frontier edge. Produces a more uniform, branchy texture.',
-    available: false,
+    available: true,
   },
   {
     id: 'kruskals',

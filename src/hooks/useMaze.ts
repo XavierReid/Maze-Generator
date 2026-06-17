@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { createGrid } from '../engine/grid';
 import { recursiveBacktracking } from '../engine/generators/recursiveBacktracking';
+import { prims } from '../engine/generators/prims';
 import { bfs } from '../engine/solvers/bfs';
 import { dfs } from '../engine/solvers/dfs';
 import { astar } from '../engine/solvers/astar';
@@ -44,6 +45,7 @@ export function useMaze(
 
   // Mutable render state refs (updated every tick, no re-render needed)
   const currentCellRef = useRef<[number, number] | null>(null);
+  const frontierCellsRef = useRef<[number, number][]>([]);
   const solvePathRef = useRef<[number, number][]>([]);
   const solveVisitedRef = useRef<Set<string>>(new Set());
   const phaseRef = useRef<AppPhase>('idle');
@@ -71,6 +73,7 @@ export function useMaze(
     renderMaze(canvas, {
       grid: gridRef.current,
       currentCell: currentCellRef.current,
+      frontierCells: frontierCellsRef.current,
       solvePath: solvePathRef.current,
       solveVisited: solveVisitedRef.current,
       phase: phaseRef.current,
@@ -84,6 +87,7 @@ export function useMaze(
     const newGrid = createGrid(size);
     gridRef.current = newGrid;
     currentCellRef.current = null;
+    frontierCellsRef.current = [];
     solvePathRef.current = [];
     solveVisitedRef.current = new Set();
 
@@ -93,6 +97,8 @@ export function useMaze(
     // Switch on generatorId — new algorithms plug in here in Phase 2d+
     const gen = (() => {
       switch (generatorIdRef.current) {
+        case 'prims':
+          return prims(newGrid);
         case 'recursive-backtracking':
         default:
           return recursiveBacktracking(newGrid);
@@ -118,6 +124,10 @@ export function useMaze(
           currentCellRef.current = [step.row, step.col];
         } else if (step.phase === 'backtracking') {
           currentCellRef.current = null;
+        } else if (step.phase === 'carving') {
+          currentCellRef.current = [step.row, step.col];
+        } else if (step.phase === 'frontier') {
+          frontierCellsRef.current = step.cells;
         }
       }
       render();

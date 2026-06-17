@@ -7,7 +7,7 @@ const COLORS = {
   cellDefault: '#0d0d10',
   cellVisited: '#1a1a2e',
   cellCurrent: '#7c3aed',
-  cellBacktrack: '#1e1b4b',
+  cellFrontier: '#92400e',  // amber-dark — frontier cells waiting to be carved
   solveVisited: '#1e3a2f',
   solvePath: '#10b981',
   solvePathGlow: '#6ee7b7',
@@ -66,6 +66,7 @@ function drawWalls(
 export type RenderState = {
   grid: Grid;
   currentCell: [number, number] | null;
+  frontierCells: [number, number][];
   solvePath: [number, number][];
   solveVisited: Set<string>;
   phase: string;
@@ -75,7 +76,7 @@ export function renderMaze(
   canvas: HTMLCanvasElement,
   state: RenderState,
 ): void {
-  const { grid, currentCell, solvePath, solveVisited, phase } = state;
+  const { grid, currentCell, frontierCells, solvePath, solveVisited, phase } = state;
   const size = grid.length;
   const s = canvas.width / size;
   const ctx = canvas.getContext('2d')!;
@@ -85,6 +86,7 @@ export function renderMaze(
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const solvePathSet = new Set(solvePath.map(([r, c]) => `${r},${c}`));
+  const frontierSet = new Set(frontierCells.map(([r, c]) => `${r},${c}`));
 
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
@@ -95,11 +97,12 @@ export function renderMaze(
         currentCell[0] === row &&
         currentCell[1] === col;
 
-      // Determine fill color
+      // Determine fill color — priority: solve path > frontier > current > visited > default
       let bg = COLORS.cellDefault;
 
       if (phase === 'generating' || phase === 'generated') {
         if (isCurrent) bg = COLORS.cellCurrent;
+        else if (frontierSet.has(cellKey)) bg = COLORS.cellFrontier;
         else if (cell.visited) bg = COLORS.cellVisited;
       }
 
@@ -123,13 +126,7 @@ export function renderMaze(
   // Start — blue dot
   ctx.fillStyle = COLORS.startCell;
   ctx.beginPath();
-  ctx.arc(
-    0 * s + s / 2,
-    0 * s + s / 2,
-    s / 2 - markerPad,
-    0,
-    Math.PI * 2,
-  );
+  ctx.arc(0 * s + s / 2, 0 * s + s / 2, s / 2 - markerPad, 0, Math.PI * 2);
   ctx.fill();
 
   // End — red dot
