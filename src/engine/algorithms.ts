@@ -40,7 +40,7 @@ export const GENERATORS: AlgorithmMeta[] = [
     name: "Wilson's",
     description:
       'Uses loop-erased random walks to carve passages. Slower to generate but produces a perfectly uniform random maze.',
-    available: false,
+    available: true,
   },
 ];
 

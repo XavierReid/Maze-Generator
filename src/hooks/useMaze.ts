@@ -3,6 +3,7 @@ import { createGrid } from '../engine/grid';
 import { recursiveBacktracking } from '../engine/generators/recursiveBacktracking';
 import { prims } from '../engine/generators/prims';
 import { kruskals } from '../engine/generators/kruskals';
+import { wilsons } from '../engine/generators/wilsons';
 import { bfs } from '../engine/solvers/bfs';
 import { dfs } from '../engine/solvers/dfs';
 import { astar } from '../engine/solvers/astar';
@@ -47,6 +48,7 @@ export function useMaze(
   // Mutable render state refs (updated every tick, no re-render needed)
   const currentCellRef = useRef<[number, number] | null>(null);
   const frontierCellsRef = useRef<[number, number][]>([]);
+  const walkPathRef = useRef<[number, number][]>([]);
   const solvePathRef = useRef<[number, number][]>([]);
   const solveVisitedRef = useRef<Set<string>>(new Set());
   const phaseRef = useRef<AppPhase>('idle');
@@ -75,6 +77,7 @@ export function useMaze(
       grid: gridRef.current,
       currentCell: currentCellRef.current,
       frontierCells: frontierCellsRef.current,
+      walkPath: walkPathRef.current,
       solvePath: solvePathRef.current,
       solveVisited: solveVisitedRef.current,
       phase: phaseRef.current,
@@ -89,6 +92,7 @@ export function useMaze(
     gridRef.current = newGrid;
     currentCellRef.current = null;
     frontierCellsRef.current = [];
+    walkPathRef.current = [];
     solvePathRef.current = [];
     solveVisitedRef.current = new Set();
 
@@ -102,6 +106,8 @@ export function useMaze(
           return prims(newGrid);
         case 'kruskals':
           return kruskals(newGrid);
+        case 'wilsons':
+          return wilsons(newGrid);
         case 'recursive-backtracking':
         default:
           return recursiveBacktracking(newGrid);
@@ -129,8 +135,14 @@ export function useMaze(
           currentCellRef.current = null;
         } else if (step.phase === 'carving') {
           currentCellRef.current = [step.row, step.col];
+          walkPathRef.current = []; // clear walk trail when committing to maze
         } else if (step.phase === 'frontier') {
           frontierCellsRef.current = step.cells;
+        } else if (step.phase === 'walking') {
+          currentCellRef.current = [step.row, step.col];
+          walkPathRef.current = step.path;
+        } else if (step.phase === 'erasing') {
+          currentCellRef.current = [step.row, step.col];
         }
       }
       render();

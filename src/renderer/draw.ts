@@ -8,6 +8,8 @@ const COLORS = {
   cellVisited: '#1a1a2e',
   cellCurrent: '#7c3aed',
   cellFrontier: '#92400e',  // amber-dark — frontier cells waiting to be carved
+  cellWalk: '#0f4c4c',      // dark teal — Wilson's active random walk trail
+  cellWalkHead: '#0d9488',  // bright teal — current position in random walk
   solveVisited: '#1e3a2f',
   solvePath: '#10b981',
   solvePathGlow: '#6ee7b7',
@@ -67,6 +69,7 @@ export type RenderState = {
   grid: Grid;
   currentCell: [number, number] | null;
   frontierCells: [number, number][];
+  walkPath: [number, number][];
   solvePath: [number, number][];
   solveVisited: Set<string>;
   phase: string;
@@ -76,7 +79,7 @@ export function renderMaze(
   canvas: HTMLCanvasElement,
   state: RenderState,
 ): void {
-  const { grid, currentCell, frontierCells, solvePath, solveVisited, phase } = state;
+  const { grid, currentCell, frontierCells, walkPath, solvePath, solveVisited, phase } = state;
   const size = grid.length;
   const s = canvas.width / size;
   const ctx = canvas.getContext('2d')!;
@@ -87,6 +90,9 @@ export function renderMaze(
 
   const solvePathSet = new Set(solvePath.map(([r, c]) => `${r},${c}`));
   const frontierSet = new Set(frontierCells.map(([r, c]) => `${r},${c}`));
+  const walkSet = new Set(walkPath.map(([r, c]) => `${r},${c}`));
+  const walkHead = walkPath.length > 0 ? walkPath[walkPath.length - 1] : null;
+  const walkHeadKey = walkHead ? `${walkHead[0]},${walkHead[1]}` : null;
 
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
@@ -102,6 +108,8 @@ export function renderMaze(
 
       if (phase === 'generating' || phase === 'generated') {
         if (isCurrent) bg = COLORS.cellCurrent;
+        else if (cellKey === walkHeadKey) bg = COLORS.cellWalkHead;
+        else if (walkSet.has(cellKey)) bg = COLORS.cellWalk;
         else if (frontierSet.has(cellKey)) bg = COLORS.cellFrontier;
         else if (cell.visited) bg = COLORS.cellVisited;
       }
