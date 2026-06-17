@@ -1,12 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { createGrid } from '../engine/grid';
-import { recursiveBacktracking } from '../engine/generators/recursiveBacktracking';
-import { prims } from '../engine/generators/prims';
-import { kruskals } from '../engine/generators/kruskals';
-import { wilsons } from '../engine/generators/wilsons';
-import { bfs } from '../engine/solvers/bfs';
-import { dfs } from '../engine/solvers/dfs';
-import { astar } from '../engine/solvers/astar';
+import { makeGenerator, makeSolver } from '../engine/factory';
 import type { Grid, AppPhase } from '../engine/types';
 import type { GeneratorId, SolverId } from '../engine/algorithms';
 import { renderMaze } from '../renderer/draw';
@@ -99,20 +93,7 @@ export function useMaze(
     setPhase('generating');
     phaseRef.current = 'generating';
 
-    // Switch on generatorId — new algorithms plug in here in Phase 2d+
-    const gen = (() => {
-      switch (generatorIdRef.current) {
-        case 'prims':
-          return prims(newGrid);
-        case 'kruskals':
-          return kruskals(newGrid);
-        case 'wilsons':
-          return wilsons(newGrid);
-        case 'recursive-backtracking':
-        default:
-          return recursiveBacktracking(newGrid);
-      }
-    })();
+    const gen = makeGenerator(generatorIdRef.current, newGrid);
 
     intervalRef.current = setInterval(() => {
       const delay = speedToDelay(speedRef.current);
@@ -163,18 +144,7 @@ export function useMaze(
     const grid = gridRef.current;
     const end: [number, number] = [grid.length - 1, grid.length - 1];
 
-    // Switch on solverId — new algorithms plug in here in Phase 2b+
-    const gen = (() => {
-      switch (solverIdRef.current) {
-        case 'dfs':
-          return dfs(grid, [0, 0], end);
-        case 'astar':
-          return astar(grid, [0, 0], end);
-        case 'bfs':
-        default:
-          return bfs(grid, [0, 0], end);
-      }
-    })();
+    const gen = makeSolver(solverIdRef.current, grid, [0, 0], end);
 
     intervalRef.current = setInterval(() => {
       const delay = speedToDelay(speedRef.current);
